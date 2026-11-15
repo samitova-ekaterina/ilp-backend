@@ -14,3 +14,6 @@ databaseChangeLog:
   - include:
       file: migrations/0005_lessons_and_homework.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0006_practice_and_revision.sql
+      relativeToChangelogFile: true
