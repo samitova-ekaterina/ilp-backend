@@ -8,3 +8,6 @@ databaseChangeLog:
   - include:
       file: migrations/0003_users_and_access.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0004_material_and_parsing.sql
+      relativeToChangelogFile: true
