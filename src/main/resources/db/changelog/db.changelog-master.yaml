@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: migrations/0001_schemas_and_country.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0002_reference_tables.sql
+      relativeToChangelogFile: true
