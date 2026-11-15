@@ -1,0 +1,16 @@
+# IDE
+.idea/
+*.iml
+
+# Build output
+target/
+build/
+out/
+
+# Local settings and secrets: never commit
+.env
+*.local.properties
+
+# OS
+Thumbs.db
+.DS_Store

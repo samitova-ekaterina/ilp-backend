@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: migrations/0001_schemas_and_country.sql
+      relativeToChangelogFile: true
