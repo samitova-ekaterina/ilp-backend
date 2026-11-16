@@ -86,3 +86,6 @@ databaseChangeLog:
   - include:
       file: migrations/0029_test_data_adaptation_competitions_statistics.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0030_indexes.sql
+      relativeToChangelogFile: true
