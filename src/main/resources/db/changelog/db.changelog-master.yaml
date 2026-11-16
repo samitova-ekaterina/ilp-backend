@@ -56,3 +56,6 @@ databaseChangeLog:
   - include:
       file: migrations/0019_reference_data_basic.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0020_reference_data_parsing_and_history.sql
+      relativeToChangelogFile: true
