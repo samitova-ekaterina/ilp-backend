@@ -89,3 +89,30 @@ databaseChangeLog:
   - include:
       file: migrations/0030_indexes.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0031_remove_level_step.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0032_competition_scored_count_rule.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0033_visual_style_unlock.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0034_learning_link_self_directed_rule.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0035_revision_record_part.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0036_exercise_typo_tolerance.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0037_pronunciation_variant.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0038_statistics_event_topic_index.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0039_test_data_edge_cases.sql
+      relativeToChangelogFile: true
