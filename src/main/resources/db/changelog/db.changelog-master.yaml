@@ -35,3 +35,6 @@ databaseChangeLog:
   - include:
       file: migrations/0012_material_and_parsing_second_wave.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0013_practice_and_revision_second_wave.sql
+      relativeToChangelogFile: true
