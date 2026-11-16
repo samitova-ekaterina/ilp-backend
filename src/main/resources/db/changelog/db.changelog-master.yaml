@@ -80,3 +80,6 @@ databaseChangeLog:
   - include:
       file: migrations/0027_test_data_materials_and_exercises.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0028_test_data_lessons_and_history.sql
+      relativeToChangelogFile: true
