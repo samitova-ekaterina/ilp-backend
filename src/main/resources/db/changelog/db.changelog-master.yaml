@@ -77,3 +77,6 @@ databaseChangeLog:
   - include:
       file: migrations/0026_test_data_users_and_access.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0027_test_data_materials_and_exercises.sql
+      relativeToChangelogFile: true
