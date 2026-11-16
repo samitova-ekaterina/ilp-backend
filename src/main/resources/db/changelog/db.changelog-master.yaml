@@ -119,3 +119,21 @@ databaseChangeLog:
   - include:
       file: migrations/0040_test_data_competition_answers.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0041_revision_queue_view.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0042_masked_views.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0043_next_revision_function.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0044_level_change_trigger.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0045_erase_personal_data_procedure.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0046_statistics_summary.sql
+      relativeToChangelogFile: true
