@@ -4,7 +4,7 @@ The diagrams are generated from the database catalogue after all migrations, so 
 
 ## Overview
 
-All 57 tables grouped into nine blocks. A block is a group of tables that serve one part of the product; the colour of a block is the same in every diagram below. Arrows to reference tables are drawn in light grey so that the main structure stays visible.
+All 57 tables are grouped into nine blocks. A block is a group of tables that serve one part of the product, and its colour is the same in every diagram below. Each box lists the tables of the block. An arrow from one block to another means that tables of the first refer to tables of the second, and the number on the arrow says how many foreign keys do so. Arrows to the reference data are drawn in light grey so that the main structure stays visible. The relationships between individual tables are shown in the diagrams of the blocks further down.
 
 ![Overview](img/schema-overview.svg)
 
