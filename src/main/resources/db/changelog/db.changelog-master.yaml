@@ -143,3 +143,9 @@ databaseChangeLog:
   - include:
       file: migrations/0048_erasure_with_retention.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0049_learning_link_access_after_end.sql
+      relativeToChangelogFile: true
+  - include:
+      file: migrations/0050_test_data_access_after_end.sql
+      relativeToChangelogFile: true
