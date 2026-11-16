@@ -44,3 +44,6 @@ databaseChangeLog:
   - include:
       file: migrations/0015_competitions_second_wave.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0016_reference_tables_third_wave.sql
+      relativeToChangelogFile: true
