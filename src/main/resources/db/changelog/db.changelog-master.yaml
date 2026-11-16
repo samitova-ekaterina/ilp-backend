@@ -83,3 +83,6 @@ databaseChangeLog:
   - include:
       file: migrations/0028_test_data_lessons_and_history.sql
       relativeToChangelogFile: true
+  - include:
+      file: migrations/0029_test_data_adaptation_competitions_statistics.sql
+      relativeToChangelogFile: true
