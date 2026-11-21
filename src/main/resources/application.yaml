@@ -14,3 +14,32 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+logging:
+  pattern:
+    correlation: "[%X{http.request.id:-}] "
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+---
+spring:
+  config:
+    activate:
+      on-profile: json-logs
+  main:
+    banner-mode: "off"
+logging:
+  structured:
+    format:
+      console: ecs
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

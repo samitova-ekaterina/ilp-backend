@@ -1,0 +1,29 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and fast tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v6
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+      - name: Build
+        run: ./gradlew assemble
+      # Tests named ...IT need a database; they join this workflow with the database tests.
+      - name: Run the fast tests
+        run: ./gradlew test --tests '*Test'
