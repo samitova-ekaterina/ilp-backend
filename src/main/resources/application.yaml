@@ -14,3 +14,14 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+---
+spring:
+  config:
+    activate:
+      on-profile: json-logs
+  main:
+    banner-mode: "off"
+logging:
+  structured:
+    format:
+      console: ecs
