@@ -25,114 +25,112 @@ import org.springframework.web.bind.annotation.RestController;
 
 class GlobalExceptionHandlerTest {
 
-	private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ProbeController())
-		.setControllerAdvice(new GlobalExceptionHandler())
-		.build();
+    private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ProbeController())
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
 
-	@Test
-	void invalidInputReturns400InTheCommonFormat() throws Exception {
-		mockMvc.perform(get("/probe/items/not-a-number"))
-			.andExpect(status().isBadRequest())
-			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-			.andExpect(jsonPath("$.status").value(400))
-			.andExpect(jsonPath("$.code").value("common.bad-request"));
-	}
+    @Test
+    void invalidInputReturns400InTheCommonFormat() throws Exception {
+        mockMvc.perform(get("/probe/items/not-a-number"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("common.bad-request"));
+    }
 
-	@Test
-	void unexpectedFailureReturns500WithoutInternalDetails() throws Exception {
-		mockMvc.perform(get("/probe/failure"))
-			.andExpect(status().isInternalServerError())
-			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-			.andExpect(jsonPath("$.code").value("common.internal-error"))
-			.andExpect(jsonPath("$.detail").value(ErrorCode.INTERNAL_ERROR.getDetail()))
-			.andExpect(content().string(not(containsString("secret reason"))));
-	}
+    @Test
+    void unexpectedFailureReturns500WithoutInternalDetails() throws Exception {
+        mockMvc.perform(get("/probe/failure"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("common.internal-error"))
+                .andExpect(jsonPath("$.detail").value(ErrorCode.INTERNAL_ERROR.getDetail()))
+                .andExpect(content().string(not(containsString("secret reason"))));
+    }
 
-	@Test
-	void invalidFormReturns400WithTheFieldsToCorrect() throws Exception {
-		mockMvc.perform(post("/probe/forms").contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"\",\"email\":\"not-an-email\"}"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value("common.bad-request"))
-			.andExpect(jsonPath("$.errors[?(@.field == 'name')].code").value("not-blank"))
-			.andExpect(jsonPath("$.errors[?(@.field == 'email')].code").value("email"))
-			.andExpect(content().string(not(containsString("not-an-email"))));
-	}
+    @Test
+    void invalidFormReturns400WithTheFieldsToCorrect() throws Exception {
+        mockMvc.perform(post("/probe/forms")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\",\"email\":\"not-an-email\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("common.bad-request"))
+                .andExpect(jsonPath("$.errors[?(@.field == 'name')].code").value("not-blank"))
+                .andExpect(jsonPath("$.errors[?(@.field == 'email')].code").value("email"))
+                .andExpect(content().string(not(containsString("not-an-email"))));
+    }
 
-	@Test
-	void pageBelowTheMinimumReturns400NamingTheParameter() throws Exception {
-		mockMvc.perform(get("/probe/pages").param("page", "-1"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[0].field").value("page"))
-			.andExpect(jsonPath("$.errors[0].code").value("min"));
-	}
+    @Test
+    void pageBelowTheMinimumReturns400NamingTheParameter() throws Exception {
+        mockMvc.perform(get("/probe/pages").param("page", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("page"))
+                .andExpect(jsonPath("$.errors[0].code").value("min"));
+    }
 
-	@Test
-	void pageOfTheWrongTypeReturns400NamingTheParameter() throws Exception {
-		mockMvc.perform(get("/probe/pages").param("page", "oops"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[0].field").value("page"))
-			.andExpect(jsonPath("$.errors[0].code").value("type-mismatch"))
-			.andExpect(content().string(not(containsString("oops"))));
-	}
+    @Test
+    void pageOfTheWrongTypeReturns400NamingTheParameter() throws Exception {
+        mockMvc.perform(get("/probe/pages").param("page", "oops"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("page"))
+                .andExpect(jsonPath("$.errors[0].code").value("type-mismatch"))
+                .andExpect(content().string(not(containsString("oops"))));
+    }
 
-	@Test
-	void missingPageReturns400NamingTheParameter() throws Exception {
-		mockMvc.perform(get("/probe/pages"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[0].field").value("page"))
-			.andExpect(jsonPath("$.errors[0].code").value("missing"));
-	}
+    @Test
+    void missingPageReturns400NamingTheParameter() throws Exception {
+        mockMvc.perform(get("/probe/pages"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("page"))
+                .andExpect(jsonPath("$.errors[0].code").value("missing"));
+    }
 
-	@Test
-	void pathVariableBelowTheMinimumReturns400NamingTheVariable() throws Exception {
-		mockMvc.perform(get("/probe/items/0"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[0].field").value("id"))
-			.andExpect(jsonPath("$.errors[0].code").value("min"));
-	}
+    @Test
+    void pathVariableBelowTheMinimumReturns400NamingTheVariable() throws Exception {
+        mockMvc.perform(get("/probe/items/0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("id"))
+                .andExpect(jsonPath("$.errors[0].code").value("min"));
+    }
 
-	@Test
-	void invalidResultOfTheServerReturns500WithoutFieldsToCorrect() throws Exception {
-		mockMvc.perform(get("/probe/broken-result"))
-			.andExpect(status().isInternalServerError())
-			.andExpect(jsonPath("$.code").value("common.internal-error"))
-			.andExpect(jsonPath("$.errors").doesNotExist());
-	}
+    @Test
+    void invalidResultOfTheServerReturns500WithoutFieldsToCorrect() throws Exception {
+        mockMvc.perform(get("/probe/broken-result"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("common.internal-error"))
+                .andExpect(jsonPath("$.errors").doesNotExist());
+    }
 
-	// Exists only in this test: the application has no request yet that can fail on demand.
-	@RestController
-	static class ProbeController {
+    // Exists only in this test: the application has no request yet that can fail on demand.
+    @RestController
+    static class ProbeController {
 
-		@GetMapping("/probe/items/{id}")
-		String item(@PathVariable("id") @Min(1) long itemId) {
-			return "item " + itemId;
-		}
+        @GetMapping("/probe/items/{id}")
+        String item(@PathVariable("id") @Min(1) long itemId) {
+            return "item " + itemId;
+        }
 
-		@GetMapping("/probe/failure")
-		String failure() {
-			throw new IllegalStateException("secret reason");
-		}
+        @GetMapping("/probe/failure")
+        String failure() {
+            throw new IllegalStateException("secret reason");
+        }
 
-		@PostMapping("/probe/forms")
-		String form(@Valid @RequestBody ProbeForm form) {
-			return "accepted";
-		}
+        @PostMapping("/probe/forms")
+        String form(@Valid @RequestBody ProbeForm form) {
+            return "accepted";
+        }
 
-		@GetMapping("/probe/pages")
-		String page(@RequestParam("page") @Min(0) int pageIndex) {
-			return "page " + pageIndex;
-		}
+        @GetMapping("/probe/pages")
+        String page(@RequestParam("page") @Min(0) int pageIndex) {
+            return "page " + pageIndex;
+        }
 
-		@GetMapping("/probe/broken-result")
-		@Min(0)
-		int brokenResult() {
-			return -1;
-		}
+        @GetMapping("/probe/broken-result")
+        @Min(0)
+        int brokenResult() {
+            return -1;
+        }
+    }
 
-	}
-
-	record ProbeForm(@NotBlank String name, @Email String email) {
-	}
-
+    record ProbeForm(@NotBlank String name, @Email String email) {}
 }

@@ -16,43 +16,41 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 class ServiceEndpointsIT {
 
-	@Autowired
-	private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-	@Test
-	void healthIsOpenAndShowsNoDetails() throws Exception {
-		mockMvc.perform(get("/actuator/health"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.status").value("UP"))
-			.andExpect(jsonPath("$.components").doesNotExist());
-	}
+    @Test
+    void healthIsOpenAndShowsNoDetails() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
+    }
 
-	@Test
-	void infoShowsTheBuildVersion() throws Exception {
-		mockMvc.perform(get("/actuator/info"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.build.version").exists());
-	}
+    @Test
+    void infoShowsTheBuildVersion() throws Exception {
+        mockMvc.perform(get("/actuator/info"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.build.version").exists());
+    }
 
-	@Test
-	void metricsAreClosedWithoutTheLocalProfile() throws Exception {
-		mockMvc.perform(get("/actuator/metrics")).andExpect(status().isNotFound());
-	}
+    @Test
+    void metricsAreClosedWithoutTheLocalProfile() throws Exception {
+        mockMvc.perform(get("/actuator/metrics")).andExpect(status().isNotFound());
+    }
 
-	@Test
-	void otherServiceAddressesAreClosed() throws Exception {
-		mockMvc.perform(get("/actuator/env")).andExpect(status().isNotFound());
-	}
+    @Test
+    void otherServiceAddressesAreClosed() throws Exception {
+        mockMvc.perform(get("/actuator/env")).andExpect(status().isNotFound());
+    }
 
-	@Nested
-	@ActiveProfiles("local")
-	class WithTheLocalProfile {
+    @Nested
+    @ActiveProfiles("local")
+    class WithTheLocalProfile {
 
-		@Test
-		void metricsAreOpen() throws Exception {
-			mockMvc.perform(get("/actuator/metrics")).andExpect(status().isOk());
-		}
-
-	}
-
+        @Test
+        void metricsAreOpen() throws Exception {
+            mockMvc.perform(get("/actuator/metrics")).andExpect(status().isOk());
+        }
+    }
 }

@@ -8,23 +8,22 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 class FieldViolationTest {
 
-	@Test
-	void reasonIsTheNameOfTheBrokenRuleInKebabCase() {
-		MessageSourceResolvable error = new DefaultMessageSourceResolvable(
-				new String[] { "NotBlank.form.name", "NotBlank" });
+    @Test
+    void reasonIsTheNameOfTheBrokenRuleInKebabCase() {
+        MessageSourceResolvable error =
+                new DefaultMessageSourceResolvable(new String[] {"NotBlank.form.name", "NotBlank"});
 
-		FieldViolation violation = FieldViolation.of("name", error);
+        FieldViolation violation = FieldViolation.of("name", error);
 
-		assertThat(violation).isEqualTo(new FieldViolation("name", "not-blank"));
-	}
+        assertThat(violation).isEqualTo(new FieldViolation("name", "not-blank"));
+    }
 
-	@Test
-	void errorWithoutCodesGetsTheGeneralReason() {
-		MessageSourceResolvable error = new DefaultMessageSourceResolvable(new String[0]);
+    @Test
+    void errorWithoutCodesGetsTheGeneralReason() {
+        MessageSourceResolvable error = new DefaultMessageSourceResolvable(new String[0]);
 
-		FieldViolation violation = FieldViolation.of("name", error);
+        FieldViolation violation = FieldViolation.of("name", error);
 
-		assertThat(violation.code()).isEqualTo("invalid");
-	}
-
+        assertThat(violation.code()).isEqualTo("invalid");
+    }
 }

@@ -18,13 +18,12 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(OutputCaptureExtension.class)
 class RequestLogIT {
 
-	@Autowired
-	private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-	@Test
-	void unknownAddressIsNotWrittenToTheLog(CapturedOutput output) throws Exception {
-		mockMvc.perform(get("/api/v1/users/anna@example.com")).andExpect(status().isNotFound());
-		assertThat(output).contains("GET unmatched -> 404").doesNotContain("anna@example.com");
-	}
-
+    @Test
+    void unknownAddressIsNotWrittenToTheLog(CapturedOutput output) throws Exception {
+        mockMvc.perform(get("/api/v1/users/anna@example.com")).andExpect(status().isNotFound());
+        assertThat(output).contains("GET unmatched -> 404").doesNotContain("anna@example.com");
+    }
 }

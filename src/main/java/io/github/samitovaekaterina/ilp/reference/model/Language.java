@@ -11,29 +11,27 @@ import jakarta.persistence.Table;
 @Table(schema = "core", name = "language")
 public class Language {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false, unique = true)
-	private String code;
+    @Column(nullable = false, unique = true)
+    private String code;
 
-	@Column(nullable = false, unique = true)
-	private String name;
+    @Column(nullable = false, unique = true)
+    private String name;
 
-	protected Language() {
-	}
+    protected Language() {}
 
-	public Long getId() {
-		return id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getCode() {
-		return code;
-	}
+    public String getCode() {
+        return code;
+    }
 
-	public String getName() {
-		return name;
-	}
-
+    public String getName() {
+        return name;
+    }
 }
