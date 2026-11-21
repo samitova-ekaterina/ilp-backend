@@ -17,6 +17,11 @@ spring:
 logging:
   pattern:
     correlation: "[%X{http.request.id:-}] "
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 ---
 spring:
   config:
@@ -28,3 +33,13 @@ logging:
   structured:
     format:
       console: ecs
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
