@@ -7,14 +7,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class ServiceEndpointsIT {
+class ServiceEndpointsIT extends IntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,6 +38,11 @@ class ServiceEndpointsIT {
     @Test
     void otherServiceAddressesAreClosed() throws Exception {
         mockMvc.perform(get("/actuator/env")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void theListOfServiceAddressesIsClosed() throws Exception {
+        mockMvc.perform(get("/actuator")).andExpect(status().isNotFound());
     }
 
     @Nested

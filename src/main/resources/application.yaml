@@ -20,6 +20,8 @@ logging:
 management:
   endpoints:
     web:
+      discovery:
+        enabled: false
       exposure:
         include: health,info
 ---
