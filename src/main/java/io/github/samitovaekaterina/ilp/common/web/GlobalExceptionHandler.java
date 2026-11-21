@@ -1,5 +1,6 @@
 package io.github.samitovaekaterina.ilp.common.web;
 
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -19,6 +20,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		ErrorCode errorCode = ErrorCode.forStatus(statusCode);
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(statusCode, errorCode.getDetail());
 		problem.setProperty("code", errorCode.getCode());
+		String requestId = MDC.get(RequestIdFilter.MDC_KEY);
+		if (requestId != null) {
+			problem.setProperty("requestId", requestId);
+		}
 		return super.handleExceptionInternal(ex, problem, headers, statusCode, request);
 	}
 

@@ -43,6 +43,12 @@ An error is never returned with the code 200.
 - Dates and times are strings in the ISO 8601 format, in UTC: `2026-11-21T12:00:00Z`.
 - A long list is returned in pages: `?page=0&size=20&sort=createdAt,desc`. Reference lists, such as languages, are short and are returned as a whole.
 
+## Request number
+
+- The server gives every request a number and returns it in the `X-Request-Id` header of every response, successful or not.
+- The number is always created by the server; a value sent by the client in this header is ignored.
+- Every log line written while the request is processed carries this number.
+
 ## Errors
 
 Every error has the same body, in the format of RFC 9457 (Problem Details for HTTP APIs), with the content type `application/problem+json`:
@@ -53,7 +59,8 @@ Every error has the same body, in the format of RFC 9457 (Problem Details for HT
   "status": 404,
   "detail": "The requested address does not exist.",
   "instance": "/api/v1/nothing",
-  "code": "common.not-found"
+  "code": "common.not-found",
+  "requestId": "d02b0360-f645-4e34-8808-b8d091ecf263"
 }
 ```
 
@@ -61,5 +68,6 @@ Every error has the same body, in the format of RFC 9457 (Problem Details for HT
 |---|---|
 | `title`, `status`, `detail`, `instance` | The standard fields of RFC 9457. The field `type` is not sent: by the standard this means a general error without a description page of its own |
 | `code` | The permanent name of the error. The front end uses it to show a message in the language of the user; the server does not translate messages |
+| `requestId` | The number of the request, the same as in the `X-Request-Id` header. A user can quote it when reporting a problem |
 
 The names of errors are kept in one place, the enum `ErrorCode`. The response never contains a stack trace, a class name or the text of a database query: these go to the log only.
