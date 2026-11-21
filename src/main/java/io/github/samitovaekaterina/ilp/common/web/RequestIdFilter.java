@@ -14,6 +14,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerMapping;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -38,16 +39,22 @@ public class RequestIdFilter extends OncePerRequestFilter {
 		}
 		finally {
 			long nanos = System.nanoTime() - startedAt;
+			String route = route(request);
 			log.atInfo()
 				.addKeyValue("http.request.method", request.getMethod())
-				.addKeyValue("url.path", request.getRequestURI())
+				.addKeyValue("http.route", route)
 				.addKeyValue("http.response.status_code", response.getStatus())
 				.addKeyValue("event.duration", nanos)
-				.log("{} {} -> {} in {} ms", request.getMethod(), request.getRequestURI(), response.getStatus(),
-						nanos / 1_000_000);
+				.log("{} {} -> {} in {} ms", request.getMethod(), route, response.getStatus(), nanos / 1_000_000);
 			// Tomcat reuses threads: without this the next request would start with the old number.
 			MDC.remove(MDC_KEY);
 		}
+	}
+
+	// The route template, never the raw path: a path can carry personal data typed by the client.
+	private static String route(HttpServletRequest request) {
+		Object pattern = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+		return (pattern == null || "/**".equals(pattern)) ? "unmatched" : pattern.toString();
 	}
 
 }

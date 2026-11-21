@@ -6,7 +6,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.MDC;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+@ExtendWith(OutputCaptureExtension.class)
 class RequestIdFilterTest {
 
 	private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ProbeController())
@@ -46,6 +50,12 @@ class RequestIdFilterTest {
 	void numberIsRemovedWhenTheRequestEnds() throws Exception {
 		mockMvc.perform(get("/probe/request-id")).andExpect(status().isOk());
 		assertThat(MDC.get(RequestIdFilter.MDC_KEY)).isNull();
+	}
+
+	@Test
+	void logShowsTheRouteTemplateNotTheRawPath(CapturedOutput output) throws Exception {
+		mockMvc.perform(get("/probe/items/42")).andExpect(status().isOk());
+		assertThat(output).contains("GET /probe/items/{id} -> 200").doesNotContain("/probe/items/42");
 	}
 
 	// Exists only in this test: it returns what a handler sees while the request is being processed.

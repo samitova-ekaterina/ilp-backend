@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -23,6 +24,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		String requestId = MDC.get(RequestIdFilter.MDC_KEY);
 		if (requestId != null) {
 			problem.setProperty("requestId", requestId);
+		}
+		if (ex instanceof MethodArgumentNotValidException invalid) {
+			problem.setProperty("errors",
+					invalid.getBindingResult().getFieldErrors().stream().map(FieldViolation::of).toList());
 		}
 		return super.handleExceptionInternal(ex, problem, headers, statusCode, request);
 	}
