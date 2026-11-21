@@ -14,3 +14,7 @@ out/
 # OS
 Thumbs.db
 .DS_Store
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar

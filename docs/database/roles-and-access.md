@@ -41,7 +41,7 @@ Functions and procedures in PostgreSQL may be executed by everyone unless this r
 | `ilp_app` | The account of the application. Member of `ilp_write` and nothing else, not a superuser | Outside the repository; the back end reads it from an environment variable |
 | `postgres` | The administrator of the server | Used only to create the database and the two accounts |
 
-No password, key or connection string with a password is stored in the repository. The file `liquibase.properties` contains the address of the database and the name of the account, and nothing secret.
+No password, key or connection string with a password is stored in the repository. The file `liquibase.properties` contains the name of the account and the location of the migrations, and nothing secret; the address of the database is read from the environment variable `LIQUIBASE_COMMAND_URL`.
 
 ## Passwords of users
 

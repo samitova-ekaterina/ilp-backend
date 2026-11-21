@@ -16,7 +16,7 @@ The project is a diploma project at the European Humanities University, academic
 | [`docs/database/data-dictionary.md`](docs/database/data-dictionary.md) | The data dictionary: every table and column |
 | [`docs/database/schema.md`](docs/database/schema.md) | The logical schema in nine colour-coded blocks |
 | [`docs/database/schema.sql`](docs/database/schema.sql) | The whole structure as one SQL script |
-| `liquibase.properties` | The address of the database and the name of the migration account; no password |
+| `liquibase.properties` | The name of the migration account and the location of the migrations; no address and no password |
 
 ## The database at a glance
 
@@ -34,7 +34,7 @@ The roles are groups of rights without a login. The application connects with it
 
 ## How to deploy the database from scratch
 
-The steps assume PostgreSQL 17 and Liquibase 5 are installed. No password is stored in the repository: the password of the migration account is read from the environment variable `LIQUIBASE_COMMAND_PASSWORD`.
+The steps assume PostgreSQL 17 and Liquibase 5 are installed. Neither the address of the database nor a password is stored in the repository: Liquibase reads the address from the environment variable `LIQUIBASE_COMMAND_URL` and the password of the migration account from `LIQUIBASE_COMMAND_PASSWORD`.
 
 1. As the PostgreSQL administrator, create the migration account and the database. The account needs the right to create roles, because the roles of the system are created by a migration. The encoding is stated explicitly, so that the database does not inherit whatever the server was installed with:
 
@@ -43,7 +43,7 @@ The steps assume PostgreSQL 17 and Liquibase 5 are installed. No password is sto
    CREATE DATABASE ilp OWNER ilp_owner ENCODING 'UTF8' TEMPLATE template0;
    ```
 
-2. Set `LIQUIBASE_COMMAND_PASSWORD` to the password of `ilp_owner` and run in the root of the repository:
+2. Set `LIQUIBASE_COMMAND_URL` to the JDBC address of the database, in the form `jdbc:postgresql://<host>:<port>/ilp`, and `LIQUIBASE_COMMAND_PASSWORD` to the password of `ilp_owner`, then run in the root of the repository:
 
    ```
    liquibase update

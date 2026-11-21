@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: ilp
+  datasource:
+    url: ${ILP_DB_URL}
+    username: ilp_app
+    password: ${ILP_APP_PASSWORD}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    user: ilp_owner
+    password: ${LIQUIBASE_COMMAND_PASSWORD}
+    contexts: "!test"
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
