@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 class GlobalExceptionHandlerTest {
@@ -57,6 +59,31 @@ class GlobalExceptionHandlerTest {
 			.andExpect(content().string(not(containsString("not-an-email"))));
 	}
 
+	@Test
+	void pageBelowTheMinimumReturns400NamingTheParameter() throws Exception {
+		mockMvc.perform(get("/probe/pages").param("page", "-1"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[0].field").value("page"))
+			.andExpect(jsonPath("$.errors[0].code").value("min"));
+	}
+
+	@Test
+	void pageOfTheWrongTypeReturns400NamingTheParameter() throws Exception {
+		mockMvc.perform(get("/probe/pages").param("page", "oops"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[0].field").value("page"))
+			.andExpect(jsonPath("$.errors[0].code").value("type-mismatch"))
+			.andExpect(content().string(not(containsString("oops"))));
+	}
+
+	@Test
+	void missingPageReturns400NamingTheParameter() throws Exception {
+		mockMvc.perform(get("/probe/pages"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[0].field").value("page"))
+			.andExpect(jsonPath("$.errors[0].code").value("missing"));
+	}
+
 	// Exists only in this test: the application has no request yet that can fail on demand.
 	@RestController
 	static class ProbeController {
@@ -74,6 +101,11 @@ class GlobalExceptionHandlerTest {
 		@PostMapping("/probe/forms")
 		String form(@Valid @RequestBody ProbeForm form) {
 			return "accepted";
+		}
+
+		@GetMapping("/probe/pages")
+		String page(@RequestParam @Min(0) int page) {
+			return "page " + page;
 		}
 
 	}

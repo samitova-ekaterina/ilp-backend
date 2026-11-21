@@ -69,6 +69,6 @@ Every error has the same body, in the format of RFC 9457 (Problem Details for HT
 | `title`, `status`, `detail`, `instance` | The standard fields of RFC 9457. The field `type` is not sent: by the standard this means a general error without a description page of its own |
 | `code` | The permanent name of the error. The front end uses it to show a message in the language of the user; the server does not translate messages |
 | `requestId` | The number of the request, the same as in the `X-Request-Id` header. A user can quote it when reporting a problem |
-| `errors` | Only when the input is invalid: the list of fields to correct. Each item holds `field`, the name of the field, and `code`, the permanent name of the reason, such as `not-blank` or `email`. The entered value is never returned |
+| `errors` | Only when the input is invalid: the list of form fields or request parameters to correct. Each item holds `field`, the name of the field or parameter, and `code`, the permanent name of the reason, such as `not-blank`, `email`, `min`, `type-mismatch` or `missing`. The entered value is never returned |
 
 The names of errors are kept in one place, the enum `ErrorCode`. The response never contains a stack trace, a class name or the text of a database query: these go to the log only.
