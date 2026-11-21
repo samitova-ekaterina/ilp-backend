@@ -84,13 +84,29 @@ class GlobalExceptionHandlerTest {
 			.andExpect(jsonPath("$.errors[0].code").value("missing"));
 	}
 
+	@Test
+	void pathVariableBelowTheMinimumReturns400NamingTheVariable() throws Exception {
+		mockMvc.perform(get("/probe/items/0"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[0].field").value("id"))
+			.andExpect(jsonPath("$.errors[0].code").value("min"));
+	}
+
+	@Test
+	void invalidResultOfTheServerReturns500WithoutFieldsToCorrect() throws Exception {
+		mockMvc.perform(get("/probe/broken-result"))
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.code").value("common.internal-error"))
+			.andExpect(jsonPath("$.errors").doesNotExist());
+	}
+
 	// Exists only in this test: the application has no request yet that can fail on demand.
 	@RestController
 	static class ProbeController {
 
 		@GetMapping("/probe/items/{id}")
-		String item(@PathVariable("id") long id) {
-			return "item " + id;
+		String item(@PathVariable("id") @Min(1) long itemId) {
+			return "item " + itemId;
 		}
 
 		@GetMapping("/probe/failure")
@@ -104,8 +120,14 @@ class GlobalExceptionHandlerTest {
 		}
 
 		@GetMapping("/probe/pages")
-		String page(@RequestParam @Min(0) int page) {
-			return "page " + page;
+		String page(@RequestParam("page") @Min(0) int pageIndex) {
+			return "page " + pageIndex;
+		}
+
+		@GetMapping("/probe/broken-result")
+		@Min(0)
+		int brokenResult() {
+			return -1;
 		}
 
 	}

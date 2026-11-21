@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.slf4j.MDC;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -13,6 +14,8 @@ import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -26,6 +29,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@Override
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
 			HttpStatusCode statusCode, WebRequest request) {
+		if (statusCode.is5xxServerError()) {
+			logger.error("Server error", ex);
+		}
 		ErrorCode errorCode = ErrorCode.forStatus(statusCode);
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(statusCode, errorCode.getDetail());
 		problem.setProperty("code", errorCode.getCode());
@@ -43,7 +49,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	// Anything unexpected: details go to the log only, the client gets a general message.
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Object> handleUnexpected(Exception ex, WebRequest request) {
-		logger.error("Unexpected error", ex);
 		return handleExceptionInternal(ex, null, new HttpHeaders(), ErrorCode.INTERNAL_ERROR.getStatus(), request);
 	}
 
@@ -53,7 +58,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 				.map(error -> FieldViolation.of(error.getField(), error))
 				.toList();
 		}
-		if (ex instanceof HandlerMethodValidationException invalid) {
+		if (ex instanceof HandlerMethodValidationException invalid && !invalid.isForReturnValue()) {
 			return invalid.getParameterValidationResults().stream()
 				.flatMap(result -> result.getResolvableErrors().stream()
 					.map(error -> FieldViolation.of(fieldName(result, error), error)))
@@ -68,9 +73,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return List.of();
 	}
 
+	// The name the client used in the address, not the name of the variable in the code.
 	private static String fieldName(ParameterValidationResult result, MessageSourceResolvable error) {
-		return (error instanceof FieldError fieldError) ? fieldError.getField()
-				: result.getMethodParameter().getParameterName();
+		if (error instanceof FieldError fieldError) {
+			return fieldError.getField();
+		}
+		MethodParameter parameter = result.getMethodParameter();
+		RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
+		if (requestParam != null && !requestParam.name().isEmpty()) {
+			return requestParam.name();
+		}
+		PathVariable pathVariable = parameter.getParameterAnnotation(PathVariable.class);
+		if (pathVariable != null && !pathVariable.name().isEmpty()) {
+			return pathVariable.name();
+		}
+		return parameter.getParameterName();
 	}
 
 }
