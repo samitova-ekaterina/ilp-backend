@@ -14,12 +14,16 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+springdoc:
+  default-produces-media-type: application/json
 logging:
   pattern:
     correlation: "[%X{http.request.id:-}] "
 management:
   endpoints:
     web:
+      discovery:
+        enabled: false
       exposure:
         include: health,info
 ---

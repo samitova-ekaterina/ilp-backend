@@ -72,3 +72,5 @@ Every error has the same body, in the format of RFC 9457 (Problem Details for HT
 | `errors` | Only when the input is invalid: the list of form fields or request parameters to correct. Each item holds `field`, the name of the field or parameter, and `code`, the permanent name of the reason, such as `not-blank`, `email`, `min`, `type-mismatch` or `missing`. The entered value is never returned |
 
 The names of errors are kept in one place, the enum `ErrorCode`. The response never contains a stack trace, a class name or the text of a database query: these go to the log only.
+
+The generated description of the API shows both rules for every operation: the `X-Request-Id` header on every response and the error body as the `default` response, which stands for every status without a description of its own. They are added in one place, the class `ApiDescriptionCustomizer`, so a new address gets them without any extra code.

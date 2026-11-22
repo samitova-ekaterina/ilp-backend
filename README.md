@@ -1,5 +1,7 @@
 # ILP
 
+[![Checks](https://github.com/samitova-ekaterina/ilp-backend/actions/workflows/checks.yml/badge.svg?branch=develop)](https://github.com/samitova-ekaterina/ilp-backend/actions/workflows/checks.yml)
+
 ILP is a web system that turns PDF study materials into interactive exercises and repeats them at growing intervals, adapting to each learner. It is made for private language teachers, their learners from the age of 14 and people who study on their own.
 
 This is the back-end repository of the project. At this stage it contains the database: the migrations that create it, its reference and test data, and its documentation. The application code will be added to the same repository at the next stages.
