@@ -58,6 +58,13 @@ class RequestIdFilterTest {
         assertThat(output).contains("GET /probe/items/{id} -> 200").doesNotContain("/probe/items/42");
     }
 
+    @Test
+    void logShowsHowLongTheRequestTook(CapturedOutput output) throws Exception {
+        mockMvc.perform(get("/probe/items/42")).andExpect(status().isOk());
+
+        assertThat(output).containsPattern("-> 200 in \\d{1,4} ms");
+    }
+
     // Exists only in this test: it returns what a handler sees while the request is being processed.
     @RestController
     static class ProbeController {

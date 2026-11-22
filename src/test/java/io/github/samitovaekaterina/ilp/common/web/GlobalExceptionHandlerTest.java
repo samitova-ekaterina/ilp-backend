@@ -1,5 +1,6 @@
 package io.github.samitovaekaterina.ilp.common.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -13,6 +14,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@ExtendWith(OutputCaptureExtension.class)
 class GlobalExceptionHandlerTest {
 
     private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ProbeController())
@@ -46,6 +51,20 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.code").value("common.internal-error"))
                 .andExpect(jsonPath("$.detail").value(ErrorCode.INTERNAL_ERROR.getDetail()))
                 .andExpect(content().string(not(containsString("secret reason"))));
+    }
+
+    @Test
+    void unexpectedFailureIsWrittenToTheLog(CapturedOutput output) throws Exception {
+        mockMvc.perform(get("/probe/failure")).andExpect(status().isInternalServerError());
+
+        assertThat(output).contains("Server error");
+    }
+
+    @Test
+    void mistakeOfTheClientIsNotWrittenToTheLogAsAServerError(CapturedOutput output) throws Exception {
+        mockMvc.perform(get("/probe/items/not-a-number")).andExpect(status().isBadRequest());
+
+        assertThat(output).doesNotContain("Server error");
     }
 
     @Test

@@ -16,3 +16,4 @@ Add a row at the bottom of the table when a test fails because of a real defect 
 
 | Date | Project | Found by | What was wrong | Fix |
 |---|---|---|---|---|
+| 2026-11-22 | `ilp-backend` | Job "Libraries: licences and vulnerabilities" of the workflow `checks.yml` | Every job downloaded all libraries again on every run: the jobs shared one cache, and it was saved by the job that needs almost no libraries. With two runs for one commit the library repository answered "429 Too Many Requests" and the run failed before any check started. Expected: a job downloads a library once and takes it from the cache afterwards | Every job has a cache of its own (pull request #33) |

@@ -21,7 +21,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          cache: gradle
+      - name: Restore the libraries downloaded by earlier runs
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # A cache of its own for every job: each job needs a different set of libraries.
+          key: gradle-${{ github.job }}-${{ hashFiles('build.gradle', 'settings.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ github.job }}-
       - name: Check the code format
         run: ./gradlew spotlessCheck
 
@@ -37,7 +45,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          cache: gradle
+      - name: Restore the libraries downloaded by earlier runs
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # A cache of its own for every job: each job needs a different set of libraries.
+          key: gradle-${{ github.job }}-${{ hashFiles('build.gradle', 'settings.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ github.job }}-
       - name: Build
         run: ./gradlew assemble
 
@@ -53,7 +69,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          cache: gradle
+      - name: Restore the libraries downloaded by earlier runs
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # A cache of its own for every job: each job needs a different set of libraries.
+          key: gradle-${{ github.job }}-${{ hashFiles('build.gradle', 'settings.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ github.job }}-
       - name: Run the fast tests
         run: ./gradlew test
       - name: Run the tests with a real PostgreSQL
@@ -74,6 +98,36 @@ jobs:
             build/reports/jacoco
             build/test-results
 
+  mutation:
+    name: Mutation tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v6
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Restore the libraries downloaded by earlier runs
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # A cache of its own for every job: each job needs a different set of libraries.
+          key: gradle-${{ github.job }}-${{ hashFiles('build.gradle', 'settings.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ github.job }}-
+      - name: Run the mutation tests
+        run: ./gradlew pitest
+      - name: Save the mutation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-report
+          path: build/reports/pitest
+
   libraries:
     name: 'Libraries: licences and vulnerabilities'
     needs: build
@@ -86,19 +140,36 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          cache: gradle
+      - name: Restore the libraries downloaded by earlier runs
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # A cache of its own for every job: each job needs a different set of libraries.
+          key: gradle-${{ github.job }}-${{ hashFiles('build.gradle', 'settings.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ github.job }}-
       - name: Check the licences of the libraries
         run: ./gradlew checkLicense
       - name: Build the application file
         run: ./gradlew bootJar
       - name: Check the libraries for known vulnerabilities
         # Trivy reads the libraries packed inside the application file; a critical vulnerability fails the run.
-        run: >
-          docker run --rm -v "$PWD/build/libs:/scan:ro" ghcr.io/aquasecurity/trivy:0.76.1
-          rootfs --scanners vuln --severity CRITICAL --exit-code 1 --no-progress /scan
-      - name: Save the licence report
+        run: |
+          mkdir -p build/trivy
+          docker run --rm -v "$PWD/build/libs:/scan:ro" -v "$PWD/build/trivy:/out" ghcr.io/aquasecurity/trivy:0.76.1 \
+            rootfs --scanners vuln --severity CRITICAL --list-all-pkgs --format json --output /out/report.json --no-progress /scan
+          libraries=$(jq '[.Results[]?.Packages[]?] | length' build/trivy/report.json)
+          critical=$(jq '[.Results[]?.Vulnerabilities[]?] | length' build/trivy/report.json)
+          echo "Libraries read by Trivy: $libraries. Critical vulnerabilities: $critical."
+          # Fewer than this means that Trivy did not read the libraries inside the application file.
+          test "$libraries" -ge 50
+          test "$critical" -eq 0
+      - name: Save the licence and vulnerability reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: licence-report
-          path: build/reports/dependency-license
+          name: library-reports
+          path: |
+            build/reports/dependency-license
+            build/trivy

@@ -15,6 +15,9 @@ out/
 Thumbs.db
 .DS_Store
 
+# Seeds of failed property-based tests, kept by jqwik between runs
+.jqwik-database
+
 # Gradle
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar

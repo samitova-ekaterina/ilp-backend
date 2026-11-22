@@ -14,6 +14,8 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+springdoc:
+  default-produces-media-type: application/json
 logging:
   pattern:
     correlation: "[%X{http.request.id:-}] "

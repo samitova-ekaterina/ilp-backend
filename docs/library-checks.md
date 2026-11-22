@@ -18,4 +18,4 @@ No paid library is used. A new licence is added to the list only after it is pla
 
 ## Known vulnerabilities
 
-The workflow builds the application file and scans the libraries packed inside it with Trivy. A vulnerability of the critical level fails the run. The version of Trivy is fixed in `.github/workflows/checks.yml`.
+The workflow builds the application file and scans the libraries packed inside it with Trivy. A vulnerability of the critical level fails the run. The run also fails when Trivy reads fewer than 50 libraries: this means that it did not look inside the application file. The number of libraries it read is printed in the log of the run. The version of Trivy is fixed in `.github/workflows/checks.yml`.
