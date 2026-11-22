@@ -4,9 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.jayway.jsonpath.JsonPath;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -59,10 +64,26 @@ class RequestIdFilterTest {
     }
 
     @Test
-    void logShowsHowLongTheRequestTook(CapturedOutput output) throws Exception {
-        mockMvc.perform(get("/probe/items/42")).andExpect(status().isOk());
+    void logShowsTheMeasuredTimeOfTheRequestInMilliseconds() throws Exception {
+        Logger filterLog = (Logger) LoggerFactory.getLogger(RequestIdFilter.class);
+        ListAppender<ILoggingEvent> logRecords = new ListAppender<>();
+        logRecords.start();
+        filterLog.addAppender(logRecords);
+        try {
+            mockMvc.perform(get("/probe/items/42")).andExpect(status().isOk());
+        } finally {
+            filterLog.detachAppender(logRecords);
+        }
 
-        assertThat(output).containsPattern("-> 200 in \\d{1,4} ms");
+        ILoggingEvent requestLine = logRecords.list.getLast();
+        long nanoseconds = requestLine.getKeyValuePairs().stream()
+                .filter(pair -> pair.key.equals("event.duration"))
+                .map(pair -> (Long) pair.value)
+                .findFirst()
+                .orElseThrow();
+        // A request of a test never takes a minute: a wrong sign in the calculation gives a far larger number.
+        assertThat(nanoseconds).isPositive().isLessThan(Duration.ofMinutes(1).toNanos());
+        assertThat(requestLine.getFormattedMessage()).endsWith(" in " + nanoseconds / 1_000_000 + " ms");
     }
 
     // Exists only in this test: it returns what a handler sees while the request is being processed.
