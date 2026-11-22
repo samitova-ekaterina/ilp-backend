@@ -62,7 +62,8 @@ jobs:
           SPRING_PROFILES_ACTIVE: json-logs
         run: ./gradlew integrationTest
       - name: Check that the coverage is not below the threshold
-        run: ./gradlew jacocoTestReport jacocoTestCoverageVerification
+        # The tests have just run in the two steps above; their data is reused, they are not started again.
+        run: ./gradlew jacocoTestReport jacocoTestCoverageVerification -x test -x integrationTest
       - name: Save the test and coverage reports
         if: always()
         uses: actions/upload-artifact@v7

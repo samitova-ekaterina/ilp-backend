@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
@@ -37,11 +39,11 @@ class MigrationsIT {
 
     @Test
     void aSecondRunAppliesNothing() throws LiquibaseException {
-        int before = appliedChangeSets();
+        List<Map<String, Object>> before = executionRecords();
 
         applyMigrations();
 
-        assertThat(appliedChangeSets()).isEqualTo(before);
+        assertThat(executionRecords()).isEqualTo(before);
     }
 
     private static void applyMigrations() throws LiquibaseException {
@@ -54,6 +56,14 @@ class MigrationsIT {
 
     private static int appliedChangeSets() {
         return new JdbcTemplate(owner).queryForObject("SELECT count(*) FROM databasechangelog", Integer.class);
+    }
+
+    // The whole record of every change set, not their number: a change set that runs again keeps its row.
+    private static List<Map<String, Object>> executionRecords() {
+        return new JdbcTemplate(owner)
+                .queryForList(
+                        "SELECT id, author, filename, dateexecuted, orderexecuted, exectype, md5sum, deployment_id"
+                                + " FROM databasechangelog ORDER BY orderexecuted, id");
     }
 
     private static int changeSetsInTheFiles() throws IOException {

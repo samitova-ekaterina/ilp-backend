@@ -13,6 +13,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import jakarta.persistence.Entity;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -81,8 +82,10 @@ class ArchitectureTest {
                     if (other == null || other.equals(module) || other.equals("common")) {
                         continue;
                     }
-                    boolean throughService =
-                            dependency.getTargetClass().getPackageName().startsWith(ROOT + "." + other + ".service");
+                    String servicePackage = ROOT + "." + other + ".service";
+                    String target = dependency.getTargetClass().getPackageName();
+                    // The package itself or one inside it: a neighbour such as "serviceinternal" does not count.
+                    boolean throughService = target.equals(servicePackage) || target.startsWith(servicePackage + ".");
                     if (module.equals("common") || !throughService) {
                         events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
                     }
@@ -96,7 +99,8 @@ class ArchitectureTest {
             @Override
             public void check(JavaMethod method, ConditionEvents events) {
                 for (JavaClass type : method.getReturnType().getAllInvolvedRawTypes()) {
-                    if (type.getPackageName().endsWith(".model")) {
+                    // The mark of a table class, not its package: the class may lie in any package.
+                    if (type.isAnnotatedWith(Entity.class)) {
                         events.add(SimpleConditionEvent.violated(
                                 method, method.getFullName() + " returns the table class " + type.getName()));
                     }
