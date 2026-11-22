@@ -113,6 +113,26 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void parameterWithoutAnExplicitNameIsNamedAsInTheAddress() throws Exception {
+        mockMvc.perform(get("/probe/sizes").param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("size"))
+                .andExpect(jsonPath("$.errors[0].code").value("min"));
+    }
+
+    @Test
+    void invalidFormNextToACheckedParameterReturns400WithTheFieldToCorrect() throws Exception {
+        mockMvc.perform(post("/probe/forms-on-a-page")
+                        .param("page", "0")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\",\"email\":\"reader@example.com\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.length()").value(1))
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errors[0].code").value("not-blank"));
+    }
+
+    @Test
     void invalidResultOfTheServerReturns500WithoutFieldsToCorrect() throws Exception {
         mockMvc.perform(get("/probe/broken-result"))
                 .andExpect(status().isInternalServerError())
@@ -142,6 +162,16 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/probe/pages")
         String page(@RequestParam("page") @Min(0) int pageIndex) {
             return "page " + pageIndex;
+        }
+
+        @GetMapping("/probe/sizes")
+        String size(@RequestParam @Min(1) int size) {
+            return "size " + size;
+        }
+
+        @PostMapping("/probe/forms-on-a-page")
+        String formOnAPage(@RequestParam("page") @Min(0) int pageIndex, @Valid @RequestBody ProbeForm form) {
+            return "accepted";
         }
 
         @GetMapping("/probe/broken-result")
