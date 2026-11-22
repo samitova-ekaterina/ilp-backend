@@ -24,6 +24,10 @@ class ApiDescriptionCustomizerTest {
         ApiResponses answers = answersOfTheOperation(description);
         assertThat(answers.get("200").getHeaders()).containsOnlyKeys("X-Request-Id");
         assertThat(answers.get("default").getHeaders()).containsOnlyKeys("X-Request-Id");
+        assertThat(answers.get("200").getHeaders().get("X-Request-Id").getRequired())
+                .isTrue();
+        assertThat(answers.get("default").getHeaders().get("X-Request-Id").getRequired())
+                .isTrue();
         Schema<?> header = answers.get("200").getHeaders().get("X-Request-Id").getSchema();
         assertThat(header.getTypes()).containsExactly("string");
     }
@@ -52,7 +56,7 @@ class ApiDescriptionCustomizerTest {
         Schema<?> problem = description.getComponents().getSchemas().get("Problem");
         assertThat(problem.getProperties())
                 .containsOnlyKeys("title", "status", "detail", "instance", "code", "requestId", "errors");
-        assertThat(problem.getRequired()).containsExactlyInAnyOrder("title", "status", "detail", "code");
+        assertThat(problem.getRequired()).containsExactlyInAnyOrder("title", "status", "detail", "code", "requestId");
         Schema<?> status = problem.getProperties().get("status");
         assertThat(status.getType()).isEqualTo("integer");
         assertThat(status.getTypes()).containsExactly("integer");
@@ -60,6 +64,7 @@ class ApiDescriptionCustomizerTest {
         Schema<?> errors = problem.getProperties().get("errors");
         assertThat(errors.getTypes()).containsExactly("array");
         assertThat(errors.getItems().getProperties()).containsOnlyKeys("field", "code");
+        assertThat(errors.getItems().getRequired()).containsExactlyInAnyOrder("field", "code");
     }
 
     private static OpenAPI descriptionWithOneOperation() {

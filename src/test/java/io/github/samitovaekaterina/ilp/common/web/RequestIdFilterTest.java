@@ -8,7 +8,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.jayway.jsonpath.JsonPath;
-import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.LoggerFactory;
@@ -69,11 +68,13 @@ class RequestIdFilterTest {
         ListAppender<ILoggingEvent> logRecords = new ListAppender<>();
         logRecords.start();
         filterLog.addAppender(logRecords);
+        long startedAt = System.nanoTime();
         try {
             mockMvc.perform(get("/probe/items/42")).andExpect(status().isOk());
         } finally {
             filterLog.detachAppender(logRecords);
         }
+        long measuredAround = System.nanoTime() - startedAt;
 
         ILoggingEvent requestLine = logRecords.list.getLast();
         long nanoseconds = requestLine.getKeyValuePairs().stream()
@@ -81,8 +82,8 @@ class RequestIdFilterTest {
                 .map(pair -> (Long) pair.value)
                 .findFirst()
                 .orElseThrow();
-        // A request of a test never takes a minute: a wrong sign in the calculation gives a far larger number.
-        assertThat(nanoseconds).isPositive().isLessThan(Duration.ofMinutes(1).toNanos());
+        // The filter measures inside the request, so its time cannot exceed the time measured around the request.
+        assertThat(nanoseconds).isBetween(0L, measuredAround);
         assertThat(requestLine.getFormattedMessage()).endsWith(" in " + nanoseconds / 1_000_000 + " ms");
     }
 

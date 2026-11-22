@@ -49,6 +49,7 @@ public class ApiDescriptionCustomizer implements GlobalOpenApiCustomizer {
     private static Header requestIdHeader() {
         return new Header()
                 .description("The number the server gave to this request. The log lines of the request carry it too.")
+                .required(true)
                 .schema(typed("string"));
     }
 
@@ -56,6 +57,7 @@ public class ApiDescriptionCustomizer implements GlobalOpenApiCustomizer {
         Schema<?> violation = typed("object");
         violation.addProperty("field", typed("string").description("The form field or request parameter to correct."));
         violation.addProperty("code", typed("string").description("The permanent name of the reason."));
+        violation.setRequired(List.of("field", "code"));
 
         Schema<?> errors = typed("array").description("Only when the input is invalid: what to correct.");
         errors.setItems(violation);
@@ -68,7 +70,7 @@ public class ApiDescriptionCustomizer implements GlobalOpenApiCustomizer {
         problem.addProperty("code", typed("string").description("The permanent name of the error."));
         problem.addProperty("requestId", typed("string").description("The same number as in the X-Request-Id header."));
         problem.addProperty("errors", errors);
-        problem.setRequired(List.of("title", "status", "detail", "code"));
+        problem.setRequired(List.of("title", "status", "detail", "code", "requestId"));
         return problem;
     }
 

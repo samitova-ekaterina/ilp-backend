@@ -34,6 +34,7 @@
                   "type" : "string"
                 }
               },
+              "required" : [ "code", "field" ],
               "type" : "object"
             },
             "type" : "array"
@@ -53,7 +54,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "code", "detail", "status", "title" ],
+        "required" : [ "code", "detail", "requestId", "status", "title" ],
         "type" : "object"
       }
     }
@@ -84,6 +85,7 @@
             "headers" : {
               "X-Request-Id" : {
                 "description" : "The number the server gave to this request. The log lines of the request carry it too.",
+                "required" : true,
                 "schema" : {
                   "type" : "string"
                 }
@@ -102,6 +104,7 @@
             "headers" : {
               "X-Request-Id" : {
                 "description" : "The number the server gave to this request. The log lines of the request carry it too.",
+                "required" : true,
                 "schema" : {
                   "type" : "string"
                 }
