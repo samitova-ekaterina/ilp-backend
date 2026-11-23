@@ -32,22 +32,48 @@ export const options = {
     },
 };
 
+// A body that is not JSON is wrong content, not a reason to stop the script with a parsing error.
+function bodyOf(response) {
+    try {
+        const body = response.json();
+        return body === undefined ? null : body;
+    } catch (e) {
+        return null;
+    }
+}
+
+// The waking requests and the measurement judge the content of an answer by the same two rules.
+function saysUp(response) {
+    const body = bodyOf(response);
+    return response.status === 200 && body !== null && body.status === 'UP';
+}
+
+function listsLanguages(response) {
+    const body = bodyOf(response);
+    return (
+        response.status === 200 &&
+        Array.isArray(body) &&
+        body.length > 0 &&
+        body.every((language) => language !== null && typeof language.code === 'string' && typeof language.name === 'string')
+    );
+}
+
 // The free service sleeps after 15 minutes without requests, and after a restart nothing in it is warm yet.
 export function setup() {
     if (!BASE_URL) {
         throw new Error('Set ILP_BASE_URL to the address of the deployed application');
     }
     const health = http.get(`${BASE_URL}/actuator/health`, { timeout: '180s', tags: { name: 'wake-up' } });
-    if (health.status !== 200) {
-        throw new Error(`The application did not wake up: status ${health.status}`);
+    if (!saysUp(health)) {
+        throw new Error(`The application did not wake up: status ${health.status}, and the health check must say UP`);
     }
     firstHealth.add(health.timings.duration);
 
     // The first request that reads the database opens the connections; three more let the application settle.
     for (let i = 0; i < 4; i++) {
         const languages = http.get(`${BASE_URL}/api/v1/languages`, { timeout: '60s', tags: { name: 'wake-up' } });
-        if (languages.status !== 200) {
-            throw new Error(`The list of languages did not answer: status ${languages.status}`);
+        if (!listsLanguages(languages)) {
+            throw new Error(`The list of languages did not answer with languages: status ${languages.status}`);
         }
         if (i === 0) {
             firstLanguages.add(languages.timings.duration);
@@ -59,13 +85,13 @@ export default function () {
     const languages = http.get(`${BASE_URL}/api/v1/languages`, { tags: { name: 'languages' } });
     check(languages, {
         'the list of languages answers 200': (r) => r.status === 200,
-        'the list of languages is not empty': (r) => r.status === 200 && r.json().length > 0,
+        'the list of languages holds languages with a code and a name': listsLanguages,
     });
 
     const health = http.get(`${BASE_URL}/actuator/health`, { tags: { name: 'health' } });
     check(health, {
         'the health check answers 200': (r) => r.status === 200,
-        'the health check says UP': (r) => r.status === 200 && r.json().status === 'UP',
+        'the health check says UP': saysUp,
     });
 
     // A reader does not click without a pause: one second between two rounds of requests.

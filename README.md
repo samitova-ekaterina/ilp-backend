@@ -94,7 +94,7 @@ The service reads three secrets from the closed settings of the platform; none o
 | `ILP_APP_PASSWORD` | The password of `ilp_app`, the account the application works under |
 | `LIQUIBASE_COMMAND_PASSWORD` | The password of `ilp_owner`, the account that applies the migrations at start-up |
 
-The free service on Render stops after 15 minutes without requests, so the first request after a pause takes up to a minute.
+The free service on Render stops after 15 minutes without requests, so the first request after a pause is slow: about two minutes in the measurement of 23.11.2026.
 
 The first measurement under a small load is described in [`docs/load-testing.md`](docs/load-testing.md).
 
