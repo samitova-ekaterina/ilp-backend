@@ -10,8 +10,8 @@ const firstHealth = new Trend('first_health_of_the_run', true);
 const firstLanguages = new Trend('first_languages_of_the_run', true);
 
 export const options = {
-    // The waking requests may wait up to 420 seconds together, and k6 gives the whole setup only 60 unless told otherwise.
-    setupTimeout: '450s',
+    // The waking requests may wait up to 540 seconds together, and k6 gives the whole setup only 60 unless told otherwise.
+    setupTimeout: '570s',
     scenarios: {
         readers: {
             executor: 'constant-vus',
@@ -63,7 +63,7 @@ export function setup() {
     if (!BASE_URL) {
         throw new Error('Set ILP_BASE_URL to the address of the deployed application');
     }
-    const health = http.get(`${BASE_URL}/actuator/health`, { timeout: '180s', tags: { name: 'wake-up' } });
+    const health = http.get(`${BASE_URL}/actuator/health`, { timeout: '300s', tags: { name: 'wake-up' } });
     if (!saysUp(health)) {
         throw new Error(`The application did not wake up: status ${health.status}, and the health check must say UP`);
     }

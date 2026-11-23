@@ -36,7 +36,7 @@ All measurements so far: Render free plan (512 MB, 0.1 CPU) and Neon free plan, 
 
 The numbers are those of the measurement only: k6 prints them in the lines marked `scenario:readers`, and the waking requests are not in them.
 
-Requests per second are the requests of the measurement divided by the 30 seconds set in the script. The real period is a little longer, because a round of requests that began before the 30 seconds were over is allowed to finish; a round takes a little over a second, so the number in the table is a few per cent too high. k6 prints a lower number of its own (8.3 for the measurement at 15:15, 1.6 for the one at 16:02), because it divides by the whole run together with the waking requests.
+Requests per second are the requests of the measurement divided by the 30 seconds set in the script. The real period is a little longer, because a round of requests that began before the 30 seconds were over is allowed to finish; a round takes a little over a second, so the number in the table is a few per cent too high. k6 prints a lower number of its own (8.3 for the measurement at 15:15, 1.6 for the one at 16:02, 1.1 for the one at 16:28), because it divides by the whole run together with the waking requests.
 
 | Date | State of the application | Requests | Requests per second | Response time: median | Response time: 95 % | Failed requests | First requests of the run | Limits |
 |---|---|---|---|---|---|---|---|---|
@@ -44,6 +44,7 @@ Requests per second are the requests of the measurement divided by the 30 second
 | 23.11.2026, 15:10 | commit `05ed763`, five minutes after its deployment went live | 156 | 5.2 | list of languages 76 ms, health check 75 ms | list of languages 11.3 s, health check 295 ms | 0 of 156 | not counted apart yet; the script woke the service with the health check only | broken: response time of the list of languages |
 | 23.11.2026, 15:15 | the same commit, ten minutes after its deployment went live; the script with the waking requests | 264 | 8.8 | list of languages 66 ms, health check 65 ms | list of languages 158 ms, health check 108 ms | 0 of 264 | health check 87 ms, list of languages 84 ms: no slow first request in this run | kept |
 | 23.11.2026, 16:02 | commit `f168faa`, 34 minutes after its deployment went live; no requests from our side since then | 254 | 8.5 | list of languages 76 ms, health check 76 ms | list of languages 258 ms, health check 197 ms | 0 of 254 | health check 1 min 58 s, list of languages 8.2 s | kept |
+| 23.11.2026, 16:28 | 24 minutes after the end of the previous run; no requests from our side in between; commit `e8e8dac` was pushed in that time, and the moment its deployment went live was not looked up | 236 | 7.9 | list of languages 99 ms, health check 89 ms | list of languages 405 ms, health check 385 ms | 0 of 236 | health check 2 min 52 s, list of languages 8.9 s | kept |
 
 ## What the second measurement showed
 
@@ -61,23 +62,24 @@ Assumed, not checked:
 What was done and what stays open:
 
 - The script now sends the waking requests described above, so the measurement shows the usual speed, and the first requests of the run are reported apart.
-- At that moment a single first request after a start and the first request after 15 minutes without requests had not been measured. The measurement at 16:02 gave both numbers.
+- At that moment a single first request after a start and the first request after 15 minutes without requests had not been measured. The runs at 16:02 and 16:28 gave the first numbers of this kind; what state the service was in before them is an assumption, as written below.
 
-## What the measurement at 16:02 showed
+## What the runs at 16:02 and 16:28 showed
 
 Observed:
 
-- The first request of the run, for the health check, was answered in 1 minute 58 seconds.
-- The first request for the list of languages, sent alone right after it, took 8.2 seconds; three more such requests followed before the measurement.
-- The measurement itself kept all limits: 254 requests, none failed, 95 % of the responses within 258 ms.
-- The list of events of the service on Render shows that the deployment of commit `f168faa` went live at 15:28. No requests were sent from our side between that moment and the run.
+- At 16:02 the first request of the run, for the health check, was answered in 1 minute 58 seconds. The first request for the list of languages, sent alone right after it, took 8.2 seconds.
+- At 16:28 the same two requests took 2 minutes 52 seconds and 8.9 seconds.
+- In both runs three more requests for the list of languages followed, and then the measurement kept all limits. In the second run the responses were slower: 95 % within 405 ms against 258 ms.
+- The list of events of the service on Render shows that the deployment of commit `f168faa` went live at 15:28. No requests were sent from our side between that moment and the first run, nor between the end of the first run at 16:04 and the second run.
 
 Assumed, not checked:
 
-- That the service had been stopped for lack of requests and that the 1 minute 58 seconds is the time of its start. No event about the stop was looked up, and requests from elsewhere are not excluded. Render says that a free service needs [about a minute](https://render.com/docs/free) to start again; here it was twice as long.
-- What the 8.2 seconds consist of: the same likely parts as in the second measurement, none measured apart.
+- That in both cases the service had been stopped for lack of requests and that the long first answer is the time of its start. No event about a stop was looked up, and requests from elsewhere are not excluded. Before the second run a new deployment may have restarted the service instead. Render says that a free service needs [about a minute](https://render.com/docs/free) to start again; here it was two to three times as long.
+- What the 8 to 9 seconds consist of: the same likely parts as in the second measurement, none measured apart.
 
 What follows:
 
-- Whoever opens the application after a pause waits about two minutes for the first answer and several seconds more for the first data from the database. After that the application is as fast as usual.
-- This has been measured once. Whether to warm the application at start-up, and what to tell the people who will open it, is decided before the submission to the experts.
+- If these were starts after a stop, whoever opens the application after a pause waits two to three minutes for the first answer and several seconds more for the first data from the database. This has been seen twice.
+- The script used to wait 180 seconds for the first answer, and at 16:28 the answer came about 8 seconds before that limit. The script now waits up to 300 seconds.
+- Whether to warm the application at start-up, and what to tell the people who will open it, is decided before the submission to the experts.
