@@ -72,7 +72,15 @@ The test users all have the password `TestPassword1`; the database holds only it
 
 ## How the application is deployed
 
-The application runs on Render and uses a PostgreSQL 17 database on Neon; both are in the region Frankfurt, on free plans.
+The application runs on Render and uses a PostgreSQL database on Neon; both are in the region Frankfurt, on free plans.
+
+The public address is `https://ilp-backend-7jv7.onrender.com`. It has no start page; these addresses answer:
+
+| Address | What it shows |
+|---|---|
+| [`/actuator/health`](https://ilp-backend-7jv7.onrender.com/actuator/health) | The state of the application |
+| [`/swagger-ui.html`](https://ilp-backend-7jv7.onrender.com/swagger-ui.html) | The description of the API |
+| [`/api/v1/languages`](https://ilp-backend-7jv7.onrender.com/api/v1/languages) | The first request of the API: the list of languages |
 
 - [`Dockerfile`](Dockerfile) builds the image: the first stage builds the application file with Gradle, the second holds only Java 25 and that file.
 - [`render.yaml`](render.yaml) describes the service for Render: the plan, the region, the health check and the names of the settings.
@@ -87,6 +95,8 @@ The service reads three secrets from the closed settings of the platform; none o
 | `LIQUIBASE_COMMAND_PASSWORD` | The password of `ilp_owner`, the account that applies the migrations at start-up |
 
 The free service on Render stops after 15 minutes without requests, so the first request after a pause takes up to a minute.
+
+The first measurement under a small load is described in [`docs/load-testing.md`](docs/load-testing.md).
 
 ### Preparing an empty database for the application
 
