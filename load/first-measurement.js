@@ -5,9 +5,9 @@ import { Trend } from 'k6/metrics';
 // The address of the deployed application comes from outside: the script holds no address of its own.
 const BASE_URL = __ENV.ILP_BASE_URL;
 
-// The first requests after a pause are counted apart: they show the cold start, not the usual speed.
-const firstHealth = new Trend('first_health_after_pause', true);
-const firstLanguages = new Trend('first_languages_after_pause', true);
+// The first requests of a run are counted apart: right after a start of the application they show the cold start.
+const firstHealth = new Trend('first_health_of_the_run', true);
+const firstLanguages = new Trend('first_languages_of_the_run', true);
 
 export const options = {
     // The waking requests may wait up to 420 seconds together, and k6 gives the whole setup only 60 unless told otherwise.
@@ -65,6 +65,7 @@ export default function () {
     const health = http.get(`${BASE_URL}/actuator/health`, { tags: { name: 'health' } });
     check(health, {
         'the health check answers 200': (r) => r.status === 200,
+        'the health check says UP': (r) => r.status === 200 && r.json().status === 'UP',
     });
 
     // A reader does not click without a pause: one second between two rounds of requests.
