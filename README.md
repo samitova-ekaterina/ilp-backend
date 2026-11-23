@@ -72,7 +72,7 @@ The test users all have the password `TestPassword1`; the database holds only it
 
 ## How the application is deployed
 
-The application runs on Render and uses a PostgreSQL database on Neon; both are in the region Frankfurt, on free plans.
+The application runs on Render and uses a PostgreSQL 17 database on Neon; both are in the region Frankfurt, on free plans.
 
 The public address is `https://ilp-backend-7jv7.onrender.com`. It has no start page; these addresses answer:
 
