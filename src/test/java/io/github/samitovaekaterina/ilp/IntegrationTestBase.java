@@ -3,6 +3,7 @@ package io.github.samitovaekaterina.ilp;
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -21,6 +22,11 @@ public abstract class IntegrationTestBase {
         registry.add("spring.datasource.url", started::jdbcUrl);
         registry.add("spring.datasource.password", () -> applicationPassword);
         registry.add("spring.liquibase.password", started::ownerPassword);
+    }
+
+    /** For a test that prepares reference data: the account of the application may not change it. */
+    protected static JdbcTemplate asOwner() {
+        return new JdbcTemplate(database().ownerDataSource());
     }
 
     // One database for the whole run: starting PostgreSQL for every test class would take most of the time.

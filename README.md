@@ -70,6 +70,50 @@ The steps assume PostgreSQL 17 and Liquibase 5 are installed. Neither the addres
 
 The test users all have the password `TestPassword1`; the database holds only its Argon2id hash. Their addresses are in the reserved domain `example.com`.
 
+## How the application is deployed
+
+The application runs on Render and uses a PostgreSQL 17 database on Neon; both are in the region Frankfurt, on free plans.
+
+The public address is `https://ilp-backend-7jv7.onrender.com`. It has no start page; these addresses answer:
+
+| Address | What it shows |
+|---|---|
+| [`/actuator/health`](https://ilp-backend-7jv7.onrender.com/actuator/health) | The state of the application |
+| [`/swagger-ui.html`](https://ilp-backend-7jv7.onrender.com/swagger-ui.html) | The description of the API |
+| [`/api/v1/languages`](https://ilp-backend-7jv7.onrender.com/api/v1/languages) | The first request of the API: the list of languages |
+
+- [`Dockerfile`](Dockerfile) builds the image: the first stage builds the application file with Gradle, the second holds only Java 25 and that file.
+- [`render.yaml`](render.yaml) describes the service for Render: the plan, the region, the health check and the names of the settings.
+- Render builds and starts a new version only when all checks of the commit have passed.
+
+The service reads three secrets from the closed settings of the platform; none of them is in the repository:
+
+| Setting | What it holds |
+|---|---|
+| `ILP_DB_URL` | The JDBC address of the database |
+| `ILP_APP_PASSWORD` | The password of `ilp_app`, the account the application works under |
+| `LIQUIBASE_COMMAND_PASSWORD` | The password of `ilp_owner`, the account that applies the migrations at start-up |
+
+The free service on Render stops after 15 minutes without requests, so the first request after a pause is slow. In two runs on 23.11.2026 the first answer came after about two and about three minutes.
+
+The first measurement under a small load is described in [`docs/load-testing.md`](docs/load-testing.md).
+
+### Preparing an empty database for the application
+
+At start-up the application applies the migrations as `ilp_owner` and then connects as `ilp_app`. So, unlike the manual way above, the account of the application must exist before the first start:
+
+1. Create `ilp_owner` with the right to create roles, and the database `ilp` owned by it. On Neon both are created in the Neon Console: a role created there has the right to create roles.
+2. As `ilp_owner`, create the group role and the account of the application:
+
+   ```sql
+   CREATE ROLE ilp_write NOLOGIN;
+   CREATE ROLE ilp_app LOGIN PASSWORD '...';
+   GRANT ilp_write TO ilp_app;
+   ```
+
+   The migration that creates the roles skips a role that already exists.
+3. Start the application: it applies the migrations without the test data and begins to serve requests.
+
 ## Security
 
 The repository contains no password, key or token: the password of the migration account is read from an environment variable, and `.gitignore` excludes local settings files. Passwords of users are stored only as Argon2id hashes.

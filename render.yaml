@@ -1,0 +1,20 @@
+# The description of the service for Render: the platform reads it from the repository.
+services:
+  - type: web
+    name: ilp-backend
+    runtime: docker
+    plan: free
+    region: frankfurt
+    # The check that does not query the database: otherwise the regular checks would never let the database sleep.
+    healthCheckPath: /actuator/health/liveness
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: json-logs
+      # Secrets: the values are typed in the Render Dashboard and are never stored in the repository.
+      - key: ILP_DB_URL
+        sync: false
+      - key: ILP_APP_PASSWORD
+        sync: false
+      - key: LIQUIBASE_COMMAND_PASSWORD
+        sync: false

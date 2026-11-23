@@ -1,3 +1,6 @@
+server:
+  # Render tells the port through PORT; on a developer's computer the usual 8080 stays.
+  port: ${PORT:8080}
 spring:
   application:
     name: ilp
