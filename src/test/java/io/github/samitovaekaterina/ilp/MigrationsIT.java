@@ -4,9 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
+import liquibase.Liquibase;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,8 +49,36 @@ class MigrationsIT {
         assertThat(executionRecords()).isEqualTo(before);
     }
 
+    @Test
+    void theLastMigrationRollsBackAndAppliesAgain() throws IOException, LiquibaseException {
+        int all = changeSetsInTheFiles();
+        int last = changeSetsIn(lastMigrationFile());
+        try {
+            rollBackTheLastChangeSets(last);
+
+            assertThat(appliedChangeSets()).isEqualTo(all - last);
+        } finally {
+            // The other tests of this class expect the database with every migration applied.
+            applyMigrations();
+        }
+        assertThat(appliedChangeSets()).isEqualTo(all);
+    }
+
     private static void applyMigrations() throws LiquibaseException {
-        SpringLiquibase liquibase = new SpringLiquibase();
+        run(new SpringLiquibase());
+    }
+
+    private static void rollBackTheLastChangeSets(int count) throws LiquibaseException {
+        // The same preparation as for applying, so that Liquibase recognises the change sets it has applied.
+        run(new SpringLiquibase() {
+            @Override
+            protected void performUpdate(Liquibase prepared) throws LiquibaseException {
+                prepared.rollback(count, "");
+            }
+        });
+    }
+
+    private static void run(SpringLiquibase liquibase) throws LiquibaseException {
         liquibase.setDataSource(owner);
         liquibase.setChangeLog(CHANGELOG);
         liquibase.setResourceLoader(new DefaultResourceLoader());
@@ -68,12 +99,27 @@ class MigrationsIT {
 
     private static int changeSetsInTheFiles() throws IOException {
         int count = 0;
-        for (Resource file : new PathMatchingResourcePatternResolver().getResources(MIGRATION_FILES)) {
-            count += (int) file.getContentAsString(StandardCharsets.UTF_8)
-                    .lines()
-                    .filter(line -> line.startsWith("--changeset"))
-                    .count();
+        for (Resource file : migrationFiles()) {
+            count += changeSetsIn(file);
         }
         return count;
+    }
+
+    private static int changeSetsIn(Resource file) throws IOException {
+        return (int) file.getContentAsString(StandardCharsets.UTF_8)
+                .lines()
+                .filter(line -> line.startsWith("--changeset"))
+                .count();
+    }
+
+    private static Resource lastMigrationFile() throws IOException {
+        // The file names start with the number of the migration, so the last by name is the last applied.
+        return Arrays.stream(migrationFiles())
+                .max(Comparator.comparing(Resource::getFilename))
+                .orElseThrow();
+    }
+
+    private static Resource[] migrationFiles() throws IOException {
+        return new PathMatchingResourcePatternResolver().getResources(MIGRATION_FILES);
     }
 }

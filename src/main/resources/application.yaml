@@ -1,6 +1,13 @@
 server:
   # Render tells the port through PORT; on a developer's computer the usual 8080 stays.
   port: ${PORT:8080}
+  servlet:
+    session:
+      cookie:
+        # Without it the browser would drop the cookie when it closes, long before the session ends.
+        max-age: ${ilp.security.session-lifetime}
+        same-site: strict
+        secure: true
 spring:
   application:
     name: ilp
@@ -17,6 +24,32 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+  session:
+    timeout: ${ilp.security.session-lifetime}
+    jdbc:
+      table-name: core.spring_session
+      # The tables are created by a migration, like every other table.
+      initialize-schema: never
+      # Once an hour: a query every minute would never let the database on the hosting platform sleep.
+      cleanup-cron: "0 0 * * * *"
+ilp:
+  security:
+    session-lifetime: 30d
+    password-hash:
+      memory-kib: 19456
+      iterations: 2
+      parallelism: 1
+      salt-length-bytes: 16
+      hash-length-bytes: 32
+  mail:
+    sender-address: ${ILP_MAIL_SENDER_ADDRESS:}
+    sender-name: ILP
+    brevo:
+      # Empty on a developer's computer and in tests: letters are then not sent.
+      api-key: ${ILP_MAIL_API_KEY:}
+      base-url: https://api.brevo.com/v3
+      connect-timeout: 2s
+      read-timeout: 5s
 springdoc:
   default-produces-media-type: application/json
 logging:
@@ -45,6 +78,12 @@ spring:
   config:
     activate:
       on-profile: local
+server:
+  servlet:
+    session:
+      cookie:
+        # A developer's computer serves plain HTTP, and not every browser accepts a secure cookie there.
+        secure: false
 management:
   endpoints:
     web:

@@ -1,8 +1,10 @@
 package io.github.samitovaekaterina.ilp;
 
+import io.github.samitovaekaterina.ilp.mail.TestMailConfiguration;
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -11,6 +13,7 @@ import org.springframework.test.context.DynamicPropertySource;
 @Tag("integration")
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(TestMailConfiguration.class)
 public abstract class IntegrationTestBase {
 
     private static TestDatabase database;
