@@ -117,3 +117,12 @@ At start-up the application applies the migrations as `ilp_owner` and then conne
 ## Security
 
 The repository contains no password, key or token: the password of the migration account is read from an environment variable, and `.gitignore` excludes local settings files. Passwords of users are stored only as Argon2id hashes.
+
+## Status and plan
+
+The project is in active development on the `develop` branch.
+
+- Implemented now: the server skeleton, unit and integration tests of the server, mutation tests, a coverage threshold of 80 % checked on every push, all checks run in GitHub Actions.
+- Planned: sign-in and access rights, PDF upload and parsing, exercises and the revision calculation, with tests for each part. UI and end-to-end tests live in [ilp-frontend](https://github.com/samitova-ekaterina/ilp-frontend/tree/develop).
+- Each planned piece of work is an issue with sub-issues and a due date: [milestones](https://github.com/samitova-ekaterina/ilp-backend/milestones), [issues](https://github.com/samitova-ekaterina/ilp-backend/issues).
+- Issues for the later parts of the plan are being added.
