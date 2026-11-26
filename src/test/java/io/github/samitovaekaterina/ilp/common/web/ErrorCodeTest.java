@@ -15,6 +15,22 @@ class ErrorCodeTest {
     }
 
     @Test
+    void aStatusWithSeveralNamesGivesItsGeneralName() {
+        ErrorCode code = ErrorCode.forStatus(HttpStatus.FORBIDDEN);
+
+        assertThat(code).isEqualTo(ErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    void theRefusalsOfSignInAndAccessHaveTheirOwnNames() {
+        assertThat(ErrorCode.UNAUTHENTICATED.getCode()).isEqualTo("auth.unauthenticated");
+        assertThat(ErrorCode.UNAUTHENTICATED.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ErrorCode.FORBIDDEN.getCode()).isEqualTo("auth.forbidden");
+        assertThat(ErrorCode.CSRF.getCode()).isEqualTo("auth.csrf");
+        assertThat(ErrorCode.CSRF.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
     void otherClientErrorCountsAsBadRequest() {
         ErrorCode code = ErrorCode.forStatus(HttpStatus.NOT_ACCEPTABLE);
 

@@ -5,6 +5,9 @@ import org.springframework.http.HttpStatusCode;
 
 public enum ErrorCode {
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "common.bad-request", "The request cannot be processed as it was sent."),
+    UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "auth.unauthenticated", "Sign in to continue."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "auth.forbidden", "This action is not allowed for the account."),
+    CSRF(HttpStatus.FORBIDDEN, "auth.csrf", "The request has no valid anti-forgery token."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "common.not-found", "The requested address does not exist."),
     METHOD_NOT_ALLOWED(
             HttpStatus.METHOD_NOT_ALLOWED,
@@ -42,6 +45,7 @@ public enum ErrorCode {
     }
 
     // Any other 4xx counts as a bad request, any other 5xx as a server error.
+    // When several names share a status, the one declared first is its general name.
     public static ErrorCode forStatus(HttpStatusCode status) {
         for (ErrorCode errorCode : values()) {
             if (errorCode.status.value() == status.value()) {

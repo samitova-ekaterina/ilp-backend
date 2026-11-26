@@ -8,6 +8,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -28,10 +31,35 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
             Exception ex, Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+        return respond(ex, ErrorCode.forStatus(statusCode), headers, statusCode, request);
+    }
+
+    // Anything unexpected: details go to the log only, the client gets a general message.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleUnexpected(Exception ex, WebRequest request) {
+        return respond(ex, ErrorCode.INTERNAL_ERROR, request);
+    }
+
+    // The refusals of Spring Security arrive here through RefusalHandler: they are raised before any controller.
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Object> handleNotSignedIn(AuthenticationException ex, WebRequest request) {
+        return respond(ex, ErrorCode.UNAUTHENTICATED, request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleNotAllowed(AccessDeniedException ex, WebRequest request) {
+        return respond(ex, ex instanceof CsrfException ? ErrorCode.CSRF : ErrorCode.FORBIDDEN, request);
+    }
+
+    private ResponseEntity<Object> respond(Exception ex, ErrorCode errorCode, WebRequest request) {
+        return respond(ex, errorCode, new HttpHeaders(), errorCode.getStatus(), request);
+    }
+
+    private ResponseEntity<Object> respond(
+            Exception ex, ErrorCode errorCode, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         if (statusCode.is5xxServerError()) {
             logger.error("Server error", ex);
         }
-        ErrorCode errorCode = ErrorCode.forStatus(statusCode);
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(statusCode, errorCode.getDetail());
         problem.setProperty("code", errorCode.getCode());
         String requestId = MDC.get(RequestIdFilter.MDC_KEY);
@@ -43,12 +71,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             problem.setProperty("errors", violations);
         }
         return super.handleExceptionInternal(ex, problem, headers, statusCode, request);
-    }
-
-    // Anything unexpected: details go to the log only, the client gets a general message.
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleUnexpected(Exception ex, WebRequest request) {
-        return handleExceptionInternal(ex, null, new HttpHeaders(), ErrorCode.INTERNAL_ERROR.getStatus(), request);
     }
 
     private static List<FieldViolation> violations(Exception ex) {

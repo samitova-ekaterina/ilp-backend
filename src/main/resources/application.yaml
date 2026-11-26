@@ -11,6 +11,9 @@ server:
 spring:
   application:
     name: ilp
+  autoconfigure:
+    # Otherwise Spring Boot would create a user of its own and print its password to the log.
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
     url: ${ILP_DB_URL}
     username: ilp_app
@@ -34,6 +37,7 @@ spring:
       cleanup-cron: "0 0 * * * *"
 ilp:
   security:
+    # Counted from the sign-in, not from the last request.
     session-lifetime: 30d
     password-hash:
       memory-kib: 19456

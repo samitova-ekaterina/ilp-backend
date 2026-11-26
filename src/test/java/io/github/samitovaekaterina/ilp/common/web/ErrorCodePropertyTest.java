@@ -16,8 +16,9 @@ class ErrorCodePropertyTest {
         assertThat(errorCode.getStatus().is5xxServerError()).isEqualTo(status >= 500);
     }
 
+    // Several names may share a status, so the name may differ, but never the status.
     @Property
-    void aStatusWithANameOfItsOwnKeepsIt(@ForAll ErrorCode errorCode) {
-        assertThat(ErrorCode.forStatus(errorCode.getStatus())).isEqualTo(errorCode);
+    void aStatusWithANameOfItsOwnKeepsItsStatus(@ForAll ErrorCode errorCode) {
+        assertThat(ErrorCode.forStatus(errorCode.getStatus()).getStatus()).isEqualTo(errorCode.getStatus());
     }
 }

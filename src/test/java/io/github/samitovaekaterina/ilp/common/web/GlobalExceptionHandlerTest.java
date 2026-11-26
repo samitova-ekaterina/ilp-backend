@@ -18,6 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -140,6 +143,43 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.errors").doesNotExist());
     }
 
+    @Test
+    void aVisitorWhoIsNotSignedInGets401WithItsOwnName() throws Exception {
+        mockMvc.perform(get("/probe/not-signed-in"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.code").value("auth.unauthenticated"))
+                .andExpect(jsonPath("$.detail").value(ErrorCode.UNAUTHENTICATED.getDetail()))
+                .andExpect(content().string(not(containsString("secret reason"))));
+    }
+
+    @Test
+    void anActionThatIsNotAllowedGets403WithItsOwnName() throws Exception {
+        mockMvc.perform(get("/probe/not-allowed"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.code").value("auth.forbidden"))
+                .andExpect(jsonPath("$.detail").value(ErrorCode.FORBIDDEN.getDetail()))
+                .andExpect(content().string(not(containsString("secret reason"))));
+    }
+
+    @Test
+    void aRequestWithoutTheAntiForgeryTokenGets403WithANameOfItsOwn() throws Exception {
+        mockMvc.perform(get("/probe/no-token"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("auth.csrf"))
+                .andExpect(jsonPath("$.detail").value(ErrorCode.CSRF.getDetail()));
+    }
+
+    @Test
+    void aRefusalIsNotWrittenToTheLogAsAServerError(CapturedOutput output) throws Exception {
+        mockMvc.perform(get("/probe/not-signed-in")).andExpect(status().isUnauthorized());
+
+        assertThat(output).doesNotContain("Server error");
+    }
+
     // Exists only in this test: the application has no request yet that can fail on demand.
     @RestController
     static class ProbeController {
@@ -172,6 +212,21 @@ class GlobalExceptionHandlerTest {
         @PostMapping("/probe/forms-on-a-page")
         String formOnAPage(@RequestParam("page") @Min(0) int pageIndex, @Valid @RequestBody ProbeForm form) {
             return "accepted";
+        }
+
+        @GetMapping("/probe/not-signed-in")
+        String notSignedIn() {
+            throw new InsufficientAuthenticationException("secret reason");
+        }
+
+        @GetMapping("/probe/not-allowed")
+        String notAllowed() {
+            throw new AccessDeniedException("secret reason");
+        }
+
+        @GetMapping("/probe/no-token")
+        String noToken() {
+            throw new MissingCsrfTokenException(null);
         }
 
         @GetMapping("/probe/broken-result")
